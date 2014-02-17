@@ -44,6 +44,7 @@ void update_setpoints();
 				// if(i == 0){
 				// 	printf("%f,%f,%f\n", theta_error, roger->eyes_setpoint[i], roger->eye_theta[i]);
 				// }
+				
 			//END IMPLEMENTED-----------------
 		}
 	}
@@ -101,12 +102,11 @@ void update_setpoints();
 		double Fx;
 
 		//IMPLEMENTED
-			//double trans_error = (roger->base_setpoint[X])-(roger->base_position[X]);
 
-			double error[2], trans_error, veloc_error;
+		double error[2], trans_error, veloc_error;
 
-			//Computer error in x and y reference coordinates
-			error[X] = roger->base_setpoint[X] - roger->base_position[X];
+		//Compute error in x and y reference coordinates
+		error[X] = roger->base_setpoint[X] - roger->base_position[X];
          	error[Y] = roger->base_setpoint[Y] - roger->base_position[Y];
 
          	//Compute coordinates of base in world coordinates
