@@ -9,8 +9,8 @@ project1.c
   
 project2.c
 
-    Code for inverse kinematics of the 2D-planar manipulator arms
+    Code for inverse kinematics of the 2D-planar manipulator arms.
 
 vision.c
 
-    Code for triangulating object positions within the field of view using stereopsis
+    Code for triangulating object positions within the field of view using stereopsis.
