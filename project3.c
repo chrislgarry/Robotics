@@ -35,11 +35,18 @@ double time;
 
   // SAMPLE A NEW REFERENCE HEADING
   if (return_state != TRANSIENT) {
-    // sample a new gaze heading from the SEARCH distribution
-    if (sample_gaze_direction(&search_heading) == FALSE) {
+
+    double ur, ul;
+    int ball_in_fov = compute_average_red_pixel(roger, &ur, &ul);
+    //If there is no sample gaze direction returned, then there is no reference.
+    if (sample_gaze_direction(&search_heading) == FALSE)
       return_state = NO_REFERENCE;
-    }
-    else return_state = TRANSIENT;
+    //If SEARCH has converged on a position where the ball is in the FOV,
+    //then we have converged on the desired search heading. no further search required
+    else if(ball_in_fov && return_state==CONVERGED)
+      return_state = CONVERGED;
+    else
+      return_state = TRANSIENT;
   }
 
   else {
@@ -48,7 +55,7 @@ double time;
     /*    search_heading using base and eyes                               */
     /***********************************************************************/
 
-      //Error: desired base position minus actual base position
+      //Error: desired base heading minus actual base heading
       heading_error_base = roger->base_setpoint[THETA] - roger->base_position[THETA];
 
       //Bound error by -2pi to 2pi
@@ -58,20 +65,20 @@ double time;
       /* define new setpoints for the base and the eyes                      */
 
       //Write search gaze (base theta orientation) setpoint
-      roger->base_setpoint[THETA] =  search_heading;//roger->base_position[THETA]+M_PI;
+      roger->base_setpoint[THETA] =  search_heading;
 
       //Set a goal for the eyes based on the above setpoint
       //Eye angles are relative to base position. We want to 
       //keep eyes close together so object in FOV can be localized using
       //stereopsis.
 
-      printf("%f\n", heading_error_base);
       roger->eyes_setpoint[LEFT]  = 0; //Want to be looking straight ahead
       roger->eyes_setpoint[RIGHT] = 0; //relative to base theta.
 
       // check for CONVERGE
-      if ( fabs(heading_error_base) < 0.01) return_state = CONVERGED;
-
+      if ( fabs(heading_error_base) < 0.01){ 
+        return_state = CONVERGED;
+      }
     /***********************************************************************/
     /* PROJECT3 PART I - END                                               */
     /***********************************************************************/
@@ -116,7 +123,9 @@ double time;
         (fabs(error_base) < 0.1)) {
         return_state = CONVERGED;
       }
-      else { return_state = TRANSIENT; }
+      else { 
+        return_state = TRANSIENT; 
+      }
 
       stereo_observation(roger, &obs); // in project2-Kinematics/vision.c
     /***********************************************************************/
@@ -127,6 +136,7 @@ double time;
     // No ball in view -> no reference
     return_state = NO_REFERENCE;
   }
+
   return(return_state);
 }
 
@@ -148,6 +158,7 @@ double time;
   /*    internal_state=[ 0:SEARCH 1:TRACK ]                             */ 
   /**********************************************************************/
   state = internal_state[1]*4 + internal_state[0];
+  printf("\nTRACK: %d SEARCH: %d STATE: %d\n", internal_state[1], internal_state[0], state);
   switch (state) {
     // the example shows an aggregate "X" that produces the same actions
     //    for all 4 SEARCH return values
@@ -161,6 +172,7 @@ double time;
        internal_state[0] = SEARCH(roger,time);
        internal_state[1] = TRACK(roger,time);
     break;
+
   case 4:                                // NO_REFERENCE -  UNKNOWN
   case 5:                                // NO_REFERENCE - NO_REFERENCE
   case 6:                                // NO_REFERENCE -  TRANSIENT
@@ -180,6 +192,7 @@ double time;
        internal_state[0] = SEARCH(roger,time);
        internal_state[1] = TRACK(roger,time);
     break;
+
   case 12:                               //  CONVERGED   -  UNKNOWN
   case 13:                               //  CONVERGED   - NO_REFERENCE
   case 14:                               //  CONVERGED   -  TRANSIENT
@@ -189,6 +202,7 @@ double time;
        internal_state[0] = SEARCH(roger,time);
        internal_state[1] = TRACK(roger,time);
     break;
+
   default:
     break;
   }
@@ -207,8 +221,7 @@ double time;
 {
   static int state = UNKNOWN;
 
-  SEARCHTRACK(roger, time);
-  //printf("SEARCHTRACK state=%d\n", SEARCHTRACK(roger, time));
+  printf("SEARCHTRACK state=%d\n", SEARCHTRACK(roger, time));
 }
 
 /*************************************************************************/
